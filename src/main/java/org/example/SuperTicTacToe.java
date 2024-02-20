@@ -6,10 +6,10 @@ import org.example.Exceptions.IllegalPlayer;
 //TODO:MEZOK MEGJELENITESE GRAFIKUSAN (KIVALASZTAS, FRISSITES, JATEKOS CSERE KEZELESE, ANIMACIO, GYOZELEM SZAMLALO JATEKOSOKRA LEBONTVA)
 //TODO:HA -1 AKKOR O-jatekos, ha 1 akkor X-jatekos
 //TODO:AZ X kezd mindig (kiveve, ha be mas van beallitva)
-//TODO:
+//TODO:A BOX-okat 3x3-kent kellene kezelni, az indexeles miatt
 
 public class SuperTicTacToe {
-    private final SmallField[] board; // 2D array to represent the super tic-tac-toe board
+    private final SmallField[][] board; // 2D array to represent the super tic-tac-toe board
     private int currentPlayer;
     private int winCountPlayer1;
     private int winCountPlayer2;
@@ -17,9 +17,11 @@ public class SuperTicTacToe {
     private int winner; // 1 if player 1 -1 if player 2 has won
 
     public SuperTicTacToe() {
-        board = new SmallField[9]; // Initialize the board with 9x9 cells
-        for(int i = 0; i < 9; i++){
-            board[i] = new SmallField();
+        board = new SmallField[3][3]; // Initialize the board with 9x9 cells
+        for(int i = 0; i < 3; i++){
+            for(int j = 0; j < 3; j++){
+                board[i][j] = new SmallField();
+            }
         }
         currentPlayer = 1; // Player 1 starts the game
         winCountPlayer1 = 0;
@@ -37,15 +39,15 @@ public class SuperTicTacToe {
      * @throws IllegalField
      * @throws IllegalPlayer
      */
-    public void makeMove(int box, int row, int col) throws IllegalField, IllegalPlayer {
+    public void makeMove(int boxi, int boxj , int row, int col) throws IllegalField, IllegalPlayer {
         // Check if the move is valid
-        if (board[box].getSmallBoardField(row, col) != 0) {
+        if (board[boxi][boxj].getSmallBoardField(row, col) != 0) {
             throw new IllegalField("This field was already filled!");
         }
         // Make the move
-        board[box].setField(row, col, currentPlayer);
+        board[boxi][boxj].setField(row, col, currentPlayer);
 
-        if (checkIfWon(box)) {
+        if (checkIfWon(boxi, boxj)) {
             if (currentPlayer == 1) {
                 addWinToPlayer1();
             } else {
@@ -60,19 +62,21 @@ public class SuperTicTacToe {
 
     public void printBoard() throws IllegalField {
         // Print the super tic-tac-toe board
-        for(int i = 0 ; i < 9; i++){
-            for(int j = 0; j < 3; j++){
-                for(int k = 0; k < 3; k++){
-                    System.out.print(board[i].getSmallBoardField(j, k));
+        for(int i = 0 ; i < 3; i++){
+            for(int l = 0; l < 3; l++){
+                for(int j = 0; j < 3; j++){
+                    for(int k = 0; k < 3; k++){
+                        System.out.print(board[i][l].getSmallBoardField(j, k));
+                    }
+                    System.out.println();
                 }
                 System.out.println();
             }
-            System.out.println();
         }
     }
 
-    public boolean checkIfWon(int box){
-        int[][] smallBoard = board[box].getSmallBoard(); // Get the small board for the specified box
+    public boolean checkIfWon(int boxi, int boxj){
+        int[][] smallBoard = board[boxi][boxj].getSmallBoard(); // Get the small board for the specified box
 
         // Check rows
         for (int i = 0; i < 3; i++) {
@@ -142,13 +146,13 @@ public class SuperTicTacToe {
 
     public static void main(String[] args) throws IllegalPlayer, IllegalField {
         SuperTicTacToe game = new SuperTicTacToe();
-        game.makeMove(0, 0, 1);
-        game.makeMove(5, 1, 2);
-        game.makeMove(4, 2, 2);
-        game.makeMove(4, 0, 1);
-        game.makeMove(0, 1, 1);
-        game.makeMove(4, 0, 2);
-        game.makeMove(0, 2, 1);
+        game.makeMove(0, 0, 0, 1);
+        game.makeMove(1, 2, 1, 2);
+        game.makeMove(1, 1, 2, 2);
+        game.makeMove(1, 1, 0, 1);
+        game.makeMove(0, 0, 1, 1);
+        game.makeMove(1, 1, 0, 2);
+        game.makeMove(0, 0, 2, 1);
         game.printBoard();
         //TODO:If isFinished and Player 1 has 3 winnings -> Print Player 1 has won
         if(game.isFinished() && game.getWinner() == 1){
