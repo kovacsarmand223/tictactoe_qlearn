@@ -33,7 +33,8 @@ public class SuperTicTacToe {
     /**
      * Changes one field of the board
      *
-     * @param box
+     * @param boxi
+     * @param boxj
      * @param row
      * @param col
      * @throws IllegalField
@@ -63,10 +64,10 @@ public class SuperTicTacToe {
     public void printBoard() throws IllegalField {
         // Print the super tic-tac-toe board
         for(int i = 0 ; i < 3; i++){
-            for(int l = 0; l < 3; l++){
-                for(int j = 0; j < 3; j++){
-                    for(int k = 0; k < 3; k++){
-                        System.out.print(board[i][l].getSmallBoardField(j, k));
+            for(int j = 0; j < 3; j++){
+                for(int k = 0; k < 3; k++){
+                    for(int l = 0; l < 3; l++){
+                        System.out.print(board[i][j].getSmallBoardField(k, l));
                     }
                     System.out.println();
                 }
