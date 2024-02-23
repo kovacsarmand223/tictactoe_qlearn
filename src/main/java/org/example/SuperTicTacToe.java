@@ -1,20 +1,28 @@
 package org.example;
 
-import org.example.Exceptions.IllegalField;
+import lombok.Getter;
+import lombok.Setter;
+import org.example.Exceptions.IllegalMove;
 import org.example.Exceptions.IllegalPlayer;
 
 //TODO:MEZOK MEGJELENITESE GRAFIKUSAN (KIVALASZTAS, FRISSITES, JATEKOS CSERE KEZELESE, ANIMACIO, GYOZELEM SZAMLALO JATEKOSOKRA LEBONTVA)
 //TODO:HA -1 AKKOR O-jatekos, ha 1 akkor X-jatekos
 //TODO:AZ X kezd mindig (kiveve, ha be mas van beallitva)
 //TODO:A BOX-okat 3x3-kent kellene kezelni, az indexeles miatt
+//TODO:HA EGY BOX LEZARULT AKKOR ATHUZVA JELENIK MEG (AZ AI NEM FOG RAJTA MAR ITERALNI, EZERT EZ BRANCHING FAKTOR)
 
+@Getter @Setter
 public class SuperTicTacToe {
-    private final SmallField[][] board; // 2D array to represent the super tic-tac-toe board
+    private final SmallField[][] board;
     private int currentPlayer;
     private int winCountPlayer1;
     private int winCountPlayer2;
     private boolean finished;
+    private boolean started;
     private int winner; // 1 if player 1 -1 if player 2 has won
+    private int lastMoveI = -1;
+    private int lastMoveJ = -1;
+    private boolean firstMoveMade;
 
     public SuperTicTacToe() {
         board = new SmallField[3][3]; // Initialize the board with 9x9 cells
@@ -23,32 +31,52 @@ public class SuperTicTacToe {
                 board[i][j] = new SmallField();
             }
         }
-        currentPlayer = 1; // Player 1 starts the game
+        currentPlayer = 1; // Player 1 starts the game AKA X
         winCountPlayer1 = 0;
         winCountPlayer2 = 0;
         finished = false;
         winner = 0;
+        firstMoveMade = false;
+        started = false;
     }
 
     /**
      * Changes one field of the board
      *
-     * @param boxi
-     * @param boxj
-     * @param row
-     * @param col
-     * @throws IllegalField
-     * @throws IllegalPlayer
+     * @param boxi Az adott box-nak az i indexe
+     * @param boxj Az adott box-nak a j indexe
+     * @param row Az adott sor
+     * @param col Az adott oszlop
+     * @throws IllegalMove Nem szabalyos lepes
+     * @throws IllegalPlayer Nem szabalyos jatekos
      */
-    public void makeMove(int boxi, int boxj , int row, int col) throws IllegalField, IllegalPlayer {
+    public void makeMove(int boxi, int boxj , int row, int col) throws IllegalMove, IllegalPlayer {
         // Check if the move is valid
         if (board[boxi][boxj].getSmallBoardField(row, col) != 0) {
-            throw new IllegalField("This field was already filled!");
+            throw new IllegalMove("This field was already filled!");
+        }
+
+        if(board[boxi][boxj].isClosed()){
+            String str = String.format("Invalid move! This field is closed! box[%s][%s]", boxi, boxj);
+            throw new IllegalMove(str);
+        }
+        //Ha a jatekos nem azt a box-ot valasztja aminek az indexe az utolso lepes volt, akkor IllegalMove, hacsak nem az elso lepes volt
+        //Ha mar csak az egyik index nem egyezik meg, akkor mar invalid
+        if(firstMoveMade){
+            if(boxi != lastMoveI || boxj != lastMoveJ){
+                String str = String.format("Invalid move! With index: %s, %s", boxi, boxj);
+                throw new IllegalMove(str);
+            }
         }
         // Make the move
         board[boxi][boxj].setField(row, col, currentPlayer);
+        lastMoveI = row;
+        lastMoveJ = col;
+        firstMoveMade = true;
 
         if (checkIfWon(boxi, boxj)) {
+            //Ha nyertek az adott box-ban akkor azt lezarjuk, hogy ne kelljen azon is vegig iteralni
+            board[boxi][boxj].setClosed(true);
             if (currentPlayer == 1) {
                 addWinToPlayer1();
             } else {
@@ -56,13 +84,10 @@ public class SuperTicTacToe {
             }
         }
 
-        //TODO:Itt kell majd checkelni a boardot amibe bele szurta az utolso lepest, hogy gyozott-e abban a box-ban
-        // Switch player
         currentPlayer = -currentPlayer; // Alternate between player 1 and -1
     }
 
-    public void printBoard() throws IllegalField {
-        // Print the super tic-tac-toe board
+    public void printBoard() throws IllegalMove {
         for(int i = 0 ; i < 3; i++){
             for(int j = 0; j < 3; j++){
                 for(int k = 0; k < 3; k++){
@@ -102,14 +127,6 @@ public class SuperTicTacToe {
         return false; // No winning conditions found
     }
 
-    public int getWinCountPlayer1() {
-        return winCountPlayer1;
-    }
-
-    public int getWinCountPlayer2() {
-        return winCountPlayer2;
-    }
-
     public void addWinToPlayer1(){
         this.winCountPlayer1++;
         if(getWinCountPlayer1() == 3){
@@ -124,45 +141,19 @@ public class SuperTicTacToe {
         }
     }
 
-    public void setWinner(int winner) {
-        this.winner = winner;
-    }
-
-    public int getWinner() {
-        return winner;
-    }
-
-    public boolean isFinished() {
-        return finished;
-    }
-
-    public void setFinished(boolean finished) {
-        this.finished = finished;
+    /**
+     *  Ha megadja azt a beallitast, hogy az elso jatekos mas legyen akkor ezzel lehet beallitani
+     *  De csak akkor ha meg nem kezdodott el a jatek
+     * @param currentPlayer
+     */
+    public void setCurrentPlayer(int currentPlayer) {
+        if(!isStarted()){
+            this.currentPlayer = currentPlayer;
+        }
     }
 
     @Override
     public String toString(){
         return "Player 1 winnings: " + getWinCountPlayer1() + "\nPlayer 2 winnings: " + getWinCountPlayer2() + "\nFinished: " + isFinished();
-    }
-
-    public static void main(String[] args) throws IllegalPlayer, IllegalField {
-        SuperTicTacToe game = new SuperTicTacToe();
-        game.makeMove(0, 0, 0, 1);
-        game.makeMove(1, 2, 1, 2);
-        game.makeMove(1, 1, 2, 2);
-        game.makeMove(1, 1, 0, 1);
-        game.makeMove(0, 0, 1, 1);
-        game.makeMove(1, 1, 0, 2);
-        game.makeMove(0, 0, 2, 1);
-        game.printBoard();
-        //TODO:If isFinished and Player 1 has 3 winnings -> Print Player 1 has won
-        if(game.isFinished() && game.getWinner() == 1){
-            System.err.println("Player 1 has won!");
-        }
-        if(game.isFinished() && game.getWinner() == -1){
-            System.err.println("Player 2 has won!");
-        }
-        //TODO:If isFinished and Player -1 has 3 winnings -> Print Player 2 has won
-        System.err.println(game);
     }
 }

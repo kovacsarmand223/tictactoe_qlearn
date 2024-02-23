@@ -1,8 +1,11 @@
 package org.example;
 
-import org.example.Exceptions.IllegalField;
+import lombok.Getter;
+import lombok.Setter;
+import org.example.Exceptions.IllegalMove;
 import org.example.Exceptions.IllegalPlayer;
 
+@Getter @Setter
 public class SmallField {
     private final int[][] smallBoard;
 
@@ -18,12 +21,12 @@ public class SmallField {
         isClosed = false;
     }
 
-    public void setField(int row, int col, int player) throws IllegalField, IllegalPlayer {
+    public void setField(int row, int col, int player) throws IllegalMove, IllegalPlayer {
         if(row > 2 || row < 0){
-            throw new IllegalField("This row is out of bound: " + Integer.toString(row));
+            throw new IllegalMove("This row is out of bound: " + Integer.toString(row));
         }
         if(col > 2 || col < 0){
-            throw new IllegalField("This column is out of bound: " + Integer.toString(col));
+            throw new IllegalMove("This column is out of bound: " + Integer.toString(col));
         }
         if(player > 1 || player < -1){
             throw new IllegalPlayer("The player does not exist: " + Integer.toString(player));
@@ -31,30 +34,18 @@ public class SmallField {
         smallBoard[row][col] = player;
     }
 
-    public boolean isClosed() {
-        return isClosed;
-    }
-
-    public void setClosed(boolean closed) {
-        isClosed = closed;
-    }
-
-    public int[][] getSmallBoard(){
-        return this.smallBoard;
-    }
-
     /**
      * @param row
      * @param col
      * @return Visszaadja az egyik mezot az adott 3x3-as box-ban
-     * @throws IllegalField
+     * @throws IllegalMove
      */
-    public int getSmallBoardField(int row, int col) throws IllegalField {
+    public int getSmallBoardField(int row, int col) throws IllegalMove {
         if(row > 2 || row < 0){
-            throw new IllegalField("This row is out of bound: " + Integer.toString(row));
+            throw new IllegalMove("This row index is out of bound: " + Integer.toString(row));
         }
         if(col > 2 || col < 0){
-            throw new IllegalField("This column is out of bound: " + Integer.toString(col));
+            throw new IllegalMove("This column index is out of bound: " + Integer.toString(col));
         }
         return smallBoard[row][col];
     }
